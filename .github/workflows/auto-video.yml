@@ -61,7 +61,7 @@ jobs:
       
       - name: 📤 Upload artifacts
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: generated-videos
           path: generated_videos/
@@ -69,7 +69,7 @@ jobs:
       
       - name: 📋 Upload logs
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: generation-logs
           path: video_generation.log
