@@ -16,47 +16,47 @@ jobs:
     timeout-minutes: 180
     
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
       
-      - uses: actions/setup-python@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-          cache: 'pip'
       
-      - run: |
+      - name: Install system dependencies
+        run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg espeak espeak-ng
       
-      - run: |
+      - name: Install Python dependencies
+        run: |
           pip install -r requirements_local.txt
           pip install pyttsx3
       
-      - run: mkdir -p generated_videos logs
+      - name: Create directories
+        run: |
+          mkdir -p generated_videos
+          mkdir -p logs
       
-      - env:
+      - name: Generate videos
+        env:
           VIDEO_COUNT: ${{ github.event.inputs.video_count || 1 }}
         run: python video_generator_local_no_keys.py
       
-      - run: ls -lh generated_videos/ || echo "No videos"
+      - name: Show results
+        if: always()
+        run: |
+          echo "=== Generated Videos ==="
+          ls -lh generated_videos/ || echo "No videos"
+          echo "=== Logs ==="
+          cat video_generation.log || echo "No logs"
       
-      - if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: generated-videos
-          path: generated_videos/
-          retention-days: 30
-      
-      - if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: generation-logs
-          path: video_generation.log
-          retention-days: 7
-      
-      - if: success()
+      - name: Commit results
+        if: success()
         run: |
           git config --local user.email "bot@github.com"
           git config --local user.name "Video Bot"
           git add generated_videos/ || true
-          git commit -m "Videos - $(date)" || true
+          git commit -m "Generated videos $(date)" || true
           git push || true
