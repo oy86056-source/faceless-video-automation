@@ -1,0 +1,36 @@
+name: Generate Video
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_count:
+        default: '1'
+
+jobs:
+  gen:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg espeak
+      
+      - run: pip install pyttsx3 requests
+      
+      - run: mkdir -p generated_videos
+      
+      - env:
+          VIDEO_COUNT: ${{ github.event.inputs.video_count || 1 }}
+        run: python video_generator_local_no_keys.py
+      
+      - if: success()
+        run: |
+          git config user.email "bot@github.com"
+          git config user.name "Bot"
+          git add generated_videos/ || true
+          git commit -m "Videos" || true
+          git push || true
